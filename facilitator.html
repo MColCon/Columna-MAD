@@ -172,21 +172,17 @@ async function loadSession() {
   state.changes = {};
 
   try {
-    const [students, attendance] = await Promise.all([
-      api(`students?cohort_id=eq.${cohortId}&order=student_id`),
-      api(`attendance?cohort_id=eq.${cohortId}&month=eq.${monthIdx}&year=eq.2026`)
-    ]);
+    const students = await api(`students?cohort_id=eq.${cohortId}&order=student_id`);
     state.students = students || [];
+
+    // Fetch ALL attendance for this cohort regardless of month/year to debug
+    const attendance = await api(`attendance?cohort_id=eq.${cohortId}&month=eq.${monthIdx}`);
     state.attendance = attendance || [];
 
-    // Always fetch fresh attendance on load to catch QR scans
-    const freshAttendance = await api(`attendance?cohort_id=eq.${cohortId}&month=eq.${monthIdx}&year=eq.2026`);
-    state.attendance = freshAttendance || [];
-
-    // Auto-refresh every 15 seconds to pick up new QR scans
+    // Auto-refresh every 15 seconds
     if (autoRefreshTimer) clearInterval(autoRefreshTimer);
     autoRefreshTimer = setInterval(async () => {
-      const fresh = await api(`attendance?cohort_id=eq.${cohortId}&month=eq.${monthIdx}&year=eq.2026`);
+      const fresh = await api(`attendance?cohort_id=eq.${cohortId}&month=eq.${monthIdx}`);
       state.attendance = fresh || [];
       renderStudents();
       renderStats();
@@ -208,9 +204,13 @@ async function loadSession() {
 }
 
 function isPresent(studentId) {
-  // Check local changes first, then fall back to loaded attendance (includes QR scans)
   if (studentId in state.changes) return state.changes[studentId];
-  const rec = state.attendance.find(a=>a.student_id===studentId && a.cohort_id===state.cohortId && a.month===state.monthIdx);
+  // Use loose comparison (==) to handle string/number type mismatches
+  const rec = state.attendance.find(a =>
+    a.student_id === studentId &&
+    Number(a.cohort_id) === Number(state.cohortId) &&
+    Number(a.month) === Number(state.monthIdx)
+  );
   return rec ? rec.present : false;
 }
 
