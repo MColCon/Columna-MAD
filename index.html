@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Columna MAD — Admin Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1B2F5E;--navy2:#152650;--navy3:#0f1a38;--navy-light:#e8edf8;--navy-mid:#c5d0e8;
+  --red:#F04156;--red2:#d63348;--red-light:#fde8eb;--red-mid:#f9b8c0;
+  --bg:#f0f4fb;--surface:#ffffff;--surface2:#f7f9fc;
+  --border:#dde4f0;--border2:#c5d0e8;
+  --text:#1B2F5E;--text2:#5a6a8a;--text3:#9aa5bf;
+  --green:#16a34a;--green-light:#dcfce7;--green2:#15803d;
+  --amber:#d97706;--amber-light:#fef3c7;
+  --radius:12px;--radius-sm:8px;--radius-lg:16px;
+}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,var(--navy) 0%,#2a4a8a 100%)}
+.login-card{background:var(--surface);border-radius:20px;padding:2.5rem;width:380px;text-align:center;box-shadow:0 20px 60px rgba(27,47,94,0.3)}
+.login-icon{width:64px;height:64px;margin:0 auto 1.25rem;background:var(--navy);border-radius:50%;display:flex;align-items:center;justify-content:center}
+.login-logo{font-size:12px;color:var(--text3);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:6px}
+.login-title{font-size:12px;font-weight:700;color:var(--navy);margin-bottom:4px}
+.login-sub{font-size:12px;color:var(--text2);margin-bottom:2rem}
+.login-card input{width:100%;padding:12px 14px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:12px;font-family:'Outfit',sans-serif;margin-bottom:12px;transition:border 0.15s}
+.login-card input:focus{outline:none;border-color:var(--navy)}
+.btn-login{width:100%;padding:13px;background:var(--navy);color:white;border:none;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif}
+.btn-login:hover{background:var(--navy2)}
+.login-error{color:var(--red);font-size:12px;margin-top:8px;display:none}
+.app{display:none}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:230px;background:var(--navy);display:flex;flex-direction:column;box-shadow:4px 0 20px rgba(27,47,94,0.15)}
+.sidebar-logo{padding:1.5rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;gap:10px}
+.logo-circle{width:36px;height:36px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;font-weight:700;color:white}
+.logo-text{display:flex;flex-direction:column}
+.sidebar-brand{font-size:12px;color:rgba(255,255,255,0.5);letter-spacing:0.12em;text-transform:uppercase}
+.sidebar-name{font-size:12px;font-weight:600;color:white}
+.nav-section{padding:1rem 1.25rem 0.5rem;font-size:12px;color:rgba(255,255,255,0.35);letter-spacing:0.1em;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 1rem;font-size:12px;color:rgba(255,255,255,0.65);cursor:pointer;transition:all 0.15s;margin:1px 8px;border-radius:8px}
+.nav-item:hover{color:white;background:rgba(255,255,255,0.1)}
+.nav-item.active{color:white;background:var(--red)}
+.nav-item svg{width:16px;height:16px;flex-shrink:0}
+.sidebar-bottom{margin-top:auto;padding:1rem 1.25rem;border-top:1px solid rgba(255,255,255,0.1)}
+.sidebar-user{font-size:12px;color:rgba(255,255,255,0.5)}
+.sidebar-logout{font-size:12px;color:rgba(240,65,86,0.8);cursor:pointer;margin-top:4px}
+.main{margin-left:230px;padding:2rem;min-height:100vh}
+.page{display:none}.page.active{display:block}
+.page-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px}
+.page-title{font-size:12px;font-weight:700;color:var(--navy)}
+.page-sub{font-size:12px;color:var(--text2);margin-top:3px}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:1.5rem}
+.metric{background:var(--surface);border-radius:var(--radius-lg);padding:1.25rem 1.25rem 1rem;box-shadow:0 2px 8px rgba(27,47,94,0.07);position:relative;overflow:hidden}
+.metric::before{content:'';position:absolute;top:0;left:0;right:0;height:4px}
+.metric.mnavy::before{background:var(--navy)}.metric.mred::before{background:var(--red)}.metric.mgreen::before{background:var(--green)}.metric.mamber::before{background:var(--amber)}
+.metric-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.metric.mnavy .metric-icon{background:var(--navy-light)}.metric.mred .metric-icon{background:var(--red-light)}.metric.mgreen .metric-icon{background:var(--green-light)}.metric.mamber .metric-icon{background:var(--amber-light)}
+.metric-label{font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:4px;font-weight:600}
+.metric-value{font-size:12px;font-weight:700}
+.metric.mnavy .metric-value{color:var(--navy)}.metric.mred .metric-value{color:var(--red)}.metric.mgreen .metric-value{color:var(--green)}.metric.mamber .metric-value{color:var(--amber)}
+.metric-sub{font-size:12px;color:var(--text3);margin-top:4px}
+.card{background:var(--surface);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1rem;box-shadow:0 2px 8px rgba(27,47,94,0.07)}
+.card-title{font-size:12px;font-weight:600;color:var(--navy);margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between}
+.pods-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1rem}
+.pod-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:1rem;cursor:pointer;transition:all 0.15s;box-shadow:0 2px 6px rgba(27,47,94,0.05)}
+.pod-card:hover{border-color:var(--navy-mid);box-shadow:0 4px 16px rgba(27,47,94,0.12);transform:translateY(-1px)}
+.pod-card.selected{border-color:var(--navy);box-shadow:0 4px 16px rgba(27,47,94,0.15)}
+.pod-card.flagged{border-color:var(--amber)}
+.pod-num{font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px;font-weight:600}
+.pod-name{font-size:12px;font-weight:600;color:var(--navy);margin-bottom:8px}
+.pod-bar-wrap{height:4px;background:var(--navy-light);border-radius:2px;margin-bottom:6px}
+.pod-bar{height:4px;background:var(--navy);border-radius:2px;transition:width 0.3s}
+.pod-meta{font-size:12px;color:var(--text2);display:flex;justify-content:space-between}
+.pod-dots{display:flex;gap:3px;margin-top:7px}
+.pod-dot{width:7px;height:7px;border-radius:50%;background:var(--border);border:1px solid var(--border2)}
+.pod-dot.present{background:var(--green);border-color:var(--green)}
+.pod-dot.current{background:var(--navy);border-color:var(--navy)}
+.flag-badge{display:inline-block;padding:1px 7px;background:var(--amber-light);color:var(--amber);border-radius:4px;font-size:12px;margin-left:6px;font-weight:600}
+.timeline{width:100%;border-collapse:collapse;font-size:12px}
+.timeline th{background:var(--surface2);color:var(--text2);font-weight:600;padding:9px 10px;text-align:center;border:1px solid var(--border);font-size:12px;text-transform:uppercase;letter-spacing:0.05em}
+.timeline th:first-child{text-align:left;width:200px}
+.timeline td{border:1px solid var(--border);padding:7px 10px;text-align:center;background:var(--surface)}
+.timeline td:first-child{text-align:left;color:var(--text2);background:var(--surface2);font-size:12px}
+.timeline td.cur{background:rgba(27,47,94,0.04)}
+.timeline td.ind{padding-left:24px}
+.ms-btn{width:24px;height:24px;border-radius:50%;border:2px solid var(--border2);background:transparent;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all 0.15s;font-size:12px;font-family:'Outfit',sans-serif}
+.ms-btn.done{background:var(--green);border-color:var(--green);color:white}
+.ms-btn:hover:not(.done){border-color:var(--navy)}
+.mdot{width:10px;height:10px;border-radius:50%;background:var(--navy-mid);display:inline-block}
+.mdot.done{background:var(--green)}.mdot.fut{opacity:0.3}
+.ts{font-size:12px;color:var(--text3);display:block;margin-top:2px}
+.detail-card{background:var(--surface);border-radius:var(--radius-lg);padding:1.25rem;margin-top:1rem;box-shadow:0 2px 8px rgba(27,47,94,0.07)}
+.detail-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:10px}
+.detail-title{font-size:12px;font-weight:700;color:var(--navy)}
+.month-tabs{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap}
+.mtab{padding:5px 13px;border-radius:999px;font-size:12px;border:1.5px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.15s;font-weight:500}
+.mtab.active{background:var(--navy);color:white;border-color:var(--navy)}
+.mtab:hover:not(.active):not(:disabled){border-color:var(--navy-mid);color:var(--navy)}
+.mtab:disabled{opacity:0.3;cursor:default}
+.stbl{width:100%;border-collapse:collapse;font-size:12px}
+.stbl th{background:var(--surface2);color:var(--text2);font-weight:600;padding:9px 12px;text-align:left;border-bottom:1.5px solid var(--border);font-size:12px;text-transform:uppercase;letter-spacing:0.05em}
+.stbl td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text2)}
+.stbl td:first-child{color:var(--navy);font-family:'DM Mono',monospace;font-size:12px;font-weight:500}
+.stbl tr:hover td{background:var(--surface2)}
+.tog{width:32px;height:18px;border-radius:9px;border:none;cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0}
+.tog.on{background:var(--green)}.tog.off{background:var(--border2)}
+.tog::after{content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:white;top:2px;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2)}
+.tog.on::after{left:16px}.tog.off::after{left:2px}
+.bdg{display:inline-block;padding:3px 10px;border-radius:6px;font-size:12px;font-weight:600}
+.bdg.present{background:var(--green-light);color:var(--green2)}
+.bdg.absent{background:var(--surface2);color:var(--text3)}
+.bdg.flagged{background:var(--amber-light);color:var(--amber)}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group label{font-size:12px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.06em}
+.form-group input,.form-group select{padding:9px 12px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:12px;font-family:'Outfit',sans-serif;transition:border 0.15s}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--navy)}
+.btn{padding:9px 18px;border-radius:var(--radius-sm);font-size:12px;font-weight:600;border:1.5px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.15s}
+.btn:hover{background:var(--surface2);color:var(--navy)}
+.btn.primary{background:var(--navy);color:white;border-color:var(--navy)}
+.btn.primary:hover{background:var(--navy2)}
+.btn-sm{padding:5px 12px;border-radius:var(--radius-sm);font-size:12px;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.15s;font-weight:500}
+.btn-sm:hover{background:var(--surface2);color:var(--navy);border-color:var(--navy-mid)}
+.btn-sm.primary{background:var(--navy);color:white;border-color:var(--navy)}
+.alert{padding:10px 14px;border-radius:var(--radius-sm);font-size:12px;margin-bottom:1rem;font-weight:500;display:none}
+.alert.success{background:var(--green-light);color:var(--green2);border:1px solid #86efac}
+.alert.error{background:var(--red-light);color:var(--red2);border:1px solid var(--red-mid)}
+.spl{display:grid;grid-template-columns:1fr 300px;gap:1.5rem}
+.search-bar{width:100%;padding:10px 14px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:12px;font-family:'Outfit',sans-serif;margin-bottom:1rem;box-shadow:0 1px 4px rgba(27,47,94,0.06)}
+.search-bar:focus{outline:none;border-color:var(--navy)}
+.stat-row{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
+.stat-chip{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:6px 14px;font-size:12px;color:var(--text2);font-weight:500}
+.stat-chip span{color:var(--navy);font-weight:700;margin-right:4px}
+.loading{text-align:center;padding:2rem;color:var(--text3);font-size:12px}
+.empty{text-align:center;padding:2rem;color:var(--text3);font-size:12px}
+.curl{font-family:'DM Mono',monospace;font-size:12px;color:var(--text2);background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;word-break:break-all;margin-top:6px}
+.qr-layout{display:grid;grid-template-columns:160px 1fr;gap:1.5rem;align-items:start}
+.qr-box{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius);padding:1rem;text-align:center}
+.qr-inner{background:white;padding:8px;border-radius:6px;display:inline-block;margin-bottom:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+.now-badge{display:inline-block;padding:2px 7px;background:var(--red);color:white;border-radius:4px;font-size:12px;font-weight:700;letter-spacing:0.05em;vertical-align:middle;margin-left:4px}
+.ms-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.ms-dot{width:18px;height:18px;border-radius:50%;flex-shrink:0;border:2px solid var(--border2)}
+.ms-dot.done{background:var(--green);border-color:var(--green)}
+.ms-ts{font-size:12px;color:var(--text3);margin-left:auto;white-space:nowrap}
+@media print{.sidebar,.month-tabs,.btn,.btn-sm{display:none!important}.main{margin-left:0}body{background:white}}
+</style>
+</head>
+<body>
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+    <div class="login-logo">Columna Consulting</div>
+    <div class="login-title">MAD Project Dashboard</div>
+    <div class="login-sub">Admin access only</div>
+    <input type="password" id="pwInput" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn-login" onclick="doLogin()">Sign in</button>
+    <div class="login-error" id="loginError">Incorrect password</div>
+  </div>
+</div>
+
+<div class="app" id="appScreen">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-circle">C</div>
+      <div class="logo-text"><div class="sidebar-brand">Columna</div><div class="sidebar-name">MAD sRQi</div></div>
+    </div>
+    <div class="nav-section">Main</div>
+    <div class="nav-item active" onclick="showPage('overview',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Overview</div>
+    <div class="nav-item" onclick="showPage('pods',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Pods</div>
+    <div class="nav-item" onclick="showPage('students',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Students</div>
+    <div class="nav-section">Project</div>
+    <div class="nav-item" onclick="showPage('timeline',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Timeline</div>
+    <div class="nav-item" onclick="showPage('qr',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><path d="M21 16h-3v3m0 2v.01M12 7v3m0-7v.01M7 12h3m-7 0v.01m5 0v.01m5 0v.01M21 12v.01"/></svg>QR Codes</div>
+    <div class="sidebar-bottom">
+      <div class="sidebar-user">Admin · Marko</div>
+      <div class="sidebar-logout" onclick="doLogout()">Sign out</div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="page active" id="page-overview">
+      <div class="page-header">
+        <div><div class="page-title">Good morning, Marko 👋</div><div class="page-sub">MAD Foundation sRQi Rollout · May–December 2025</div></div>
+        <button class="btn" onclick="window.print()">Export report</button>
+      </div>
+      <div class="metrics" id="overview-metrics">
+        <div class="metric mnavy"><div class="metric-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B2F5E" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="metric-label">Total Students</div><div class="metric-value">—</div><div class="metric-sub">of 87 expected</div></div>
+        <div class="metric mgreen"><div class="metric-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div><div class="metric-label">Attendance Logged</div><div class="metric-value">—</div><div class="metric-sub">Loading...</div></div>
+        <div class="metric mred"><div class="metric-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F04156" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div class="metric-label">Flagged Students</div><div class="metric-value">—</div><div class="metric-sub">3+ missed sessions</div></div>
+        <div class="metric mamber"><div class="metric-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><div class="metric-label">Sessions Run</div><div class="metric-value">—</div><div class="metric-sub">of 6 pod months</div></div>
+      </div>
+      <div class="card"><div class="card-title">Pods at a glance</div><div id="overview-pods-grid" class="pods-grid"></div></div>
+      <div class="card"><div class="card-title">Milestones</div><div id="overview-milestones"></div></div>
+    </div>
+
+    <div class="page" id="page-pods">
+      <div class="page-header"><div><div class="page-title">Pods</div><div class="page-sub">Select a pod to manage attendance</div></div></div>
+      <div class="pods-grid" id="pods-grid"></div>
+      <div id="pod-detail-area"></div>
+    </div>
+
+    <div class="page" id="page-students">
+      <div class="page-header"><div><div class="page-title">Students</div><div class="page-sub">Register students and manage the roster</div></div></div>
+      <div class="spl">
+        <div>
+          <div class="stat-row" id="student-stats"></div>
+          <input class="search-bar" id="student-search" placeholder="Search by name or student ID…" oninput="renderStudentTable()">
+          <div class="card" style="padding:0;overflow:hidden">
+            <table class="stbl"><thead><tr><th>ID</th><th>Full Name</th><th>Cohort</th><th>Sessions</th><th>Status</th></tr></thead><tbody id="student-tbody"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody></table>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-title">Register student</div>
+            <div id="reg-alert" class="alert"></div>
+            <div style="background:var(--navy-light);border:1.5px dashed var(--navy-mid);border-radius:var(--radius-sm);padding:12px;margin-bottom:14px;text-align:center;cursor:pointer" onclick="document.getElementById('xlsx-upload').click()">
+              <div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:3px">📂 Bulk import from Excel</div>
+              <div style="font-size:12px;color:var(--text2)">Upload your completed template to register all students at once</div>
+              <input type="file" id="xlsx-upload" accept=".xlsx" style="display:none" onchange="handleXlsx(event)">
+            </div>
+            <div style="text-align:center;font-size:12px;color:var(--text3);margin-bottom:12px">— or register one at a time —</div>
+            <div class="form-group" style="margin-bottom:10px"><label>Full name</label><input id="reg-name" placeholder="Name Surname"></div>
+            <div class="form-group" style="margin-bottom:14px"><label>Assign to cohort</label><select id="reg-cohort"></select></div>
+            <button class="btn primary" style="width:100%;margin-top:4px" onclick="registerStudent()">Register student</button>
+            <div style="font-size:12px;color:var(--text3);margin-top:8px">ID auto-generated · MAD-001 format</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Assign facilitator</div>
+            <div class="form-group" style="margin-bottom:10px"><label>Cohort</label><select id="fac-cohort"></select></div>
+            <div class="form-group" style="margin-bottom:14px"><label>Facilitator name</label><input id="fac-name" placeholder="Full name"></div>
+            <button class="btn primary" style="width:100%;margin-top:4px" onclick="assignFacilitator()">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page" id="page-timeline">
+      <div class="page-header"><div><div class="page-title">Project Timeline</div><div class="page-sub">Click a milestone to mark complete · Pods start July · Timestamps recorded automatically</div></div></div>
+      <div class="card" style="overflow-x:auto"><table class="timeline" id="timeline-table"></table></div>
+      <div class="card"><div class="card-title">Milestone log</div><div id="milestone-list"></div></div>
+    </div>
+
+    <div class="page" id="page-qr">
+      <div class="page-header"><div><div class="page-title">QR Codes</div><div class="page-sub">Generate monthly check-in QR codes per cohort</div></div></div>
+      <div class="card">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:1rem">
+          <div class="form-group"><label>Cohort</label><select id="qr-cohort-select" onchange="generateQR()"></select></div>
+          <div class="form-group"><label>Month</label><select id="qr-month-select" onchange="generateQR()"><option value="2">July</option><option value="3">August</option><option value="4">September</option><option value="5">October</option><option value="6">November</option><option value="7">December</option></select></div>
+          <button class="btn primary" onclick="generateQR()">Generate</button>
+        </div>
+        <div id="qr-output"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Facilitator page</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:8px">Share with facilitators for manual attendance marking:</div>
+        <div class="curl" id="facilitator-url">—</div>
+        <button class="btn-sm" style="margin-top:8px" onclick="copyFacilitatorUrl()">Copy link</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// SheetJS loaded via CDN below
+const SB='https://jipuejubzctpxdgpvxuh.supabase.co';
+const SK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImppcHVlanViemN0cHhkZ3B2eHVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MDU1OTgsImV4cCI6MjA5NDM4MTU5OH0.ZJGK9eBzAgWp_NFeod7yYcRJiT1RzczHALxbjQzPTkU';
+const PW='ColumnaisMAD';
+const MO=['May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MON=['May','June','July','August','September','October','November','December'];
+const CM=Math.min(Math.max(new Date().getMonth()-4,0),7);
+const PSM=2;
+let S={cohorts:[],students:[],attendance:[],milestones:[],pod:null,month:PSM};
+
+async function api(p,m='GET',b=null){
+  const o={method:m,headers:{'apikey':SK,'Authorization':`Bearer ${SK}`,'Content-Type':'application/json','Prefer':m==='POST'?'return=representation':''}};
+  if(b)o.body=JSON.stringify(b);
+  const r=await fetch(SB+'/rest/v1/'+p,o);
+  if(!r.ok){const e=await r.json();throw new Error(e.message||'err');}
+  return r.status===204?null:r.json();
+}
+
+function doLogin(){
+  if(document.getElementById('pwInput').value===PW){
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('appScreen').style.display='block';
+    load();
+  }else document.getElementById('loginError').style.display='block';
+}
+function doLogout(){document.getElementById('loginScreen').style.display='flex';document.getElementById('appScreen').style.display='none';document.getElementById('pwInput').value='';}
+
+async function load(){
+  try{
+    const [c,st,a,m]=await Promise.all([api('cohorts?order=id'),api('students?order=student_id'),api('attendance?order=created_at'),api('milestones?order=id')]);
+    S.cohorts=c||[];S.students=st||[];S.attendance=a||[];S.milestones=m||[];
+    renderAll();
+  }catch(e){console.error(e);}
+}
+
+function renderAll(){rOv();rPG();rST();rSF();rTL();rQRS();rFU();}
+
+function showPage(n,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+n).classList.add('active');
+  if(el)el.classList.add('active');
+  if(n==='pods')rPG();if(n==='students')rST();if(n==='timeline')rTL();if(n==='qr'){rQRS();gQR();}
+}
+
+function gAC(sid){return S.attendance.filter(a=>a.student_id===sid&&a.present).length;}
+function gMC(sid){return Math.max(0,CM-PSM+1)-gAC(sid);}
+function isFl(sid){return gMC(sid)>=3;}
+function fd(iso){if(!iso)return'';return new Date(iso).toLocaleDateString('en-ZA',{day:'numeric',month:'short',year:'numeric'});}
+
+function rOv(){
+  const tot=S.students.length,att=S.attendance.filter(a=>a.present).length;
+  const fl=S.students.filter(s=>isFl(s.student_id)).length;
+  const sr=Math.max(0,CM-PSM+1);
+  const pct=tot>0&&sr>0?Math.round(att/(tot*sr)*100):0;
+  document.getElementById('overview-metrics').innerHTML=`
+    <div class="metric mnavy"><div class="metric-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B2F5E" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="metric-label">Total Students</div><div class="metric-value">${tot}</div><div class="metric-sub">of 87 expected</div></div>
+    <div class="metric mgreen"><div class="metric-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div><div class="metric-label">Attendance Logged</div><div class="metric-value">${att}</div><div class="metric-sub">${pct}% rate</div></div>
+    <div class="metric mred"><div class="metric-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F04156" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div class="metric-label">Flagged Students</div><div class="metric-value">${fl}</div><div class="metric-sub">3+ missed sessions</div></div>
+    <div class="metric mamber"><div class="metric-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><div class="metric-label">Sessions Run</div><div class="metric-value">${sr}</div><div class="metric-sub">of 6 pod months</div></div>
+  `;
+  document.getElementById('overview-pods-grid').innerHTML=S.cohorts.map(c=>pCH(c)).join('');
+  const done=S.milestones.filter(m=>m.done).length;
+  document.getElementById('overview-milestones').innerHTML=`<div style="font-size:12px;color:var(--text2);margin-bottom:10px;font-weight:500">${done} of ${S.milestones.length} completed</div>`+
+    S.milestones.map(m=>`<div class="ms-row"><div class="ms-dot ${m.done?'done':''}"></div><div style="font-size:12px;color:${m.done?'var(--navy)':'var(--text2)'};font-weight:${m.done?600:400};flex:1">${m.label}</div>${m.done?`<div class="ms-ts">${fd(m.completed_at)}</div>`:''}</div>`).join('');
+}
+
+function pCH(c){
+  const sts=S.students.filter(s=>s.cohort_id===c.id);
+  const sr=Math.max(0,CM-PSM+1),att=S.attendance.filter(a=>a.cohort_id===c.id&&a.present).length;
+  const pct=sts.length>0&&sr>0?Math.round(att/(sts.length*sr)*100):0;
+  const fl=sts.filter(s=>isFl(s.student_id)).length;
+  const dots=MO.map((_,i)=>{
+    if(i<PSM)return'';
+    const ma=S.attendance.filter(a=>a.cohort_id===c.id&&a.month===i&&a.present).length;
+    return`<div class="pod-dot${ma>0?' present':''}${i===CM&&ma===0?' current':''}" style="${i>CM?'opacity:0.3':''}"></div>`;
+  }).join('');
+  return`<div class="pod-card${S.pod===c.id?' selected':''}${fl>0?' flagged':''}" onclick="selPod(${c.id})">
+    <div class="pod-num">Pod ${c.id}</div>
+    <div class="pod-name">${c.name}${fl>0?`<span class="flag-badge">⚠ ${fl}</span>`:''}</div>
+    <div class="pod-bar-wrap"><div class="pod-bar" style="width:${pct}%"></div></div>
+    <div class="pod-meta"><span>${sts.length} students</span><span>${pct}%</span></div>
+    <div class="pod-dots">${dots}</div>
+  </div>`;
+}
+
+function rPG(){
+  document.getElementById('pods-grid').innerHTML=S.cohorts.map(c=>pCH(c)).join('');
+  if(S.pod)rPD(S.pod);
+}
+function selPod(id){S.pod=S.pod===id?null:id;rPG();}
+
+function rPD(cid){
+  const c=S.cohorts.find(x=>x.id===cid);
+  if(!c){document.getElementById('pod-detail-area').innerHTML='';return;}
+  const sts=S.students.filter(s=>s.cohort_id===cid);
+  const sa=S.attendance.filter(a=>a.cohort_id===cid&&a.month===S.month);
+  const tabs=MO.map((m,i)=>{
+    if(i<PSM)return'';
+    const dis=i>CM+1;
+    const ma=S.attendance.filter(a=>a.cohort_id===cid&&a.month===i);
+    const ts=ma.length>0?fd(ma[0].created_at):'';
+    return`<button class="mtab${S.month===i?' active':''}" ${dis?'disabled':''} onclick="selM(${i})">${m}${ts&&i!==S.month?`<span class="ts" style="color:var(--green);font-size:12px">${ts}</span>`:''}</button>`;
+  }).join('');
+  const rows=sts.length===0?`<tr><td colspan="4" class="empty">No students yet</td></tr>`:sts.map(s=>{
+    const rec=sa.find(a=>a.student_id===s.student_id),present=rec?rec.present:false;
+    const ts=rec?fd(rec.created_at):'';
+    return`<tr><td>${s.student_id}</td><td>${s.full_name}${isFl(s.student_id)?'<span class="flag-badge" style="margin-left:6px">⚠</span>':''}</td>
+      <td>${gAC(s.student_id)} sessions${ts?`<br><span style="font-size:12px;color:var(--text3)">${ts}</span>`:''}</td>
+      <td><div style="display:flex;align-items:center;gap:8px"><button class="tog ${present?'on':'off'}" onclick="togAtt('${s.student_id}',${cid},${S.month},${present})"></button><span class="bdg ${present?'present':'absent'}">${present?'Present':'Absent'}</span></div></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('pod-detail-area').innerHTML=`<div class="detail-card">
+    <div class="detail-header">
+      <div><div class="detail-title">${c.name}</div><div style="font-size:12px;color:var(--text2);margin-top:3px">Facilitator: ${c.facilitator||'Not assigned'} · ${sts.length} students · ${sa.filter(a=>a.present).length} present</div></div>
+      <div style="display:flex;gap:8px"><button class="btn-sm" onclick="expC(${cid})">Export CSV</button><button class="btn-sm" onclick="selPod(null)">Close</button></div>
+    </div>
+    <div class="month-tabs">${tabs}</div>
+    <div style="overflow-x:auto"><table class="stbl"><thead><tr><th>Student ID</th><th>Name</th><th>Attendance</th><th>Mark</th></tr></thead><tbody>${rows}</tbody></table></div>
+  </div>`;
+}
+
+function selM(i){S.month=i;if(S.pod)rPD(S.pod);}
+
+async function togAtt(sid,cid,mo,cur){
+  try{
+    const ex=S.attendance.find(a=>a.student_id===sid&&a.cohort_id===cid&&a.month===mo&&a.year===2025);
+    if(ex){await api(`attendance?id=eq.${ex.id}`,'PATCH',{present:!cur,marked_by:'admin'});ex.present=!cur;}
+    else{const res=await api('attendance','POST',{student_id:sid,cohort_id:cid,month:mo,year:2025,present:true,marked_by:'admin'});S.attendance.push(res[0]);}
+    rPD(cid);rOv();
+  }catch(e){alert('Error: '+e.message);}
+}
+
+function rST(){
+  const q=(document.getElementById('student-search')||{}).value||'';
+  const f=S.students.filter(s=>s.full_name.toLowerCase().includes(q.toLowerCase())||s.student_id.toLowerCase().includes(q.toLowerCase()));
+  const fl=S.students.filter(s=>isFl(s.student_id)).length;
+  const ss=document.getElementById('student-stats');
+  if(ss)ss.innerHTML=`<div class="stat-chip"><span>${S.students.length}</span>registered</div><div class="stat-chip"><span>${87-S.students.length}</span>spots left</div><div class="stat-chip" style="border-color:var(--amber)"><span style="color:var(--amber)">${fl}</span>flagged</div>`;
+  const tb=document.getElementById('student-tbody');if(!tb)return;
+  if(!f.length){tb.innerHTML='<tr><td colspan="5" class="empty">No students found</td></tr>';return;}
+  tb.innerHTML=f.map(s=>{const co=S.cohorts.find(c=>c.id===s.cohort_id);return`<tr><td>${s.student_id}</td><td>${s.full_name}${isFl(s.student_id)?'<span class="flag-badge" style="margin-left:6px">⚠</span>':''}</td><td>${co?co.name:'—'}</td><td>${gAC(s.student_id)}</td><td><span class="bdg ${isFl(s.student_id)?'flagged':'present'}">${isFl(s.student_id)?'Flagged':'Active'}</span></td></tr>`;}).join('');
+}
+
+function rSF(){
+  const o=S.cohorts.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  ['reg-cohort','fac-cohort','qr-cohort-select'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=o;});
+}
+
+async function registerStudent(){
+  const name=document.getElementById('reg-name').value.trim();
+  const cid=parseInt(document.getElementById('reg-cohort').value);
+  const al=document.getElementById('reg-alert');
+  if(!name){sAl(al,'error','Please enter a full name');return;}
+  try{
+    const sid='MAD-'+String(S.students.length+1).padStart(3,'0');
+    const res=await api('students','POST',{student_id:sid,full_name:name,cohort_id:cid});
+    S.students.push(res[0]);document.getElementById('reg-name').value='';
+    sAl(al,'success',`Registered ${name} as ${sid}`);rST();rOv();
+  }catch(e){sAl(al,'error','Error: '+e.message);}
+}
+
+async function assignFacilitator(){
+  const cid=parseInt(document.getElementById('fac-cohort').value);
+  const name=document.getElementById('fac-name').value.trim();if(!name)return;
+  try{await api(`cohorts?id=eq.${cid}`,'PATCH',{facilitator:name});const c=S.cohorts.find(x=>x.id===cid);if(c)c.facilitator=name;document.getElementById('fac-name').value='';renderAll();}
+  catch(e){alert('Error: '+e.message);}
+}
+
+function sAl(el,t,msg){el.className='alert '+t;el.textContent=msg;el.style.display='block';setTimeout(()=>el.style.display='none',4000);}
+
+function rTL(){
+  const MS=[{key:'setup',label:'Setup',month:1},{key:'baseline',label:'Baseline sRQi rollout',month:1},{key:'workshop_1st',label:'Launch workshop — 1st years',month:2,i:true},{key:'workshop_final',label:'Launch workshop — Final years',month:2,i:true},{key:'endline',label:'Endline sRQi rollout',month:7}];
+  let h='<thead><tr><th>Milestone</th>';
+  MO.forEach((m,i)=>h+=`<th style="${i===CM?'color:var(--red)':''};font-size:12px">${m}${i===CM?'<span class="now-badge">NOW</span>':''}</th>`);
+  h+='</tr></thead><tbody>';
+  MS.forEach(ms=>{
+    const db=S.milestones.find(m=>m.key===ms.key),done=db?db.done:false,ts=db&&db.completed_at?fd(db.completed_at):'';
+    h+=`<tr><td class="${ms.i?'ind':''}">${ms.label}${done&&ts?`<span class="ts" style="color:var(--green);font-weight:500">${ts}</span>`:''}</td>`;
+    MO.forEach((_,i)=>{const c=i===CM;h+=i===ms.month?`<td class="${c?'cur':''}"><button class="ms-btn ${done?'done':''}" onclick="togMS('${ms.key}')">${done?'✓':''}</button></td>`:`<td class="${c?'cur':''}"></td>`;});
+    h+='</tr>';
+  });
+  h+=`<tr><td>Pods</td>`;
+  MO.forEach((_,i)=>{
+    if(i<PSM){h+=`<td class="${i===CM?'cur':''}"></td>`;return;}
+    const ma=S.attendance.filter(a=>a.month===i&&a.present).length,done=ma>=S.students.length*0.8,fut=i>CM;
+    const sa=S.attendance.filter(a=>a.month===i),ts=sa.length>0?fd(sa[0].created_at):'';
+    h+=`<td class="${i===CM?'cur':''}"><div class="mdot ${done?'done':''} ${fut?'fut':''}" title="${ma} attended"></div>${ts&&!fut?`<span class="ts">${ts}</span>`:''}</td>`;
+  });
+  h+='</tr></tbody>';
+  document.getElementById('timeline-table').innerHTML=h;
+  document.getElementById('milestone-list').innerHTML=S.milestones.map(m=>`<div class="ms-row"><div class="ms-dot ${m.done?'done':''}"></div><div style="flex:1;font-size:12px;color:${m.done?'var(--navy)':'var(--text2)'};font-weight:${m.done?600:400}">${m.label}</div>${m.done&&m.completed_at?`<div class="ms-ts">${fd(m.completed_at)}</div>`:''}<button class="btn-sm" onclick="togMS('${m.key}')">${m.done?'Undo':'Mark done'}</button></div>`).join('');
+}
+
+async function togMS(key){
+  const m=S.milestones.find(x=>x.key===key);if(!m)return;
+  const nd=!m.done;
+  try{await api(`milestones?key=eq.${key}`,'PATCH',{done:nd,completed_at:nd?new Date().toISOString():null});m.done=nd;m.completed_at=nd?new Date().toISOString():null;rTL();rOv();}
+  catch(e){alert('Error: '+e.message);}
+}
+
+function rQRS(){rSF();}
+function gQR(){
+  const cid=document.getElementById('qr-cohort-select')?.value;
+  const mi=document.getElementById('qr-month-select')?.value;
+  if(!cid||mi===undefined)return;
+  const c=S.cohorts.find(x=>x.id===parseInt(cid));if(!c)return;
+  const base=window.location.href.replace('index.html','').replace(/\/$/,'');
+  const url=`${base}/checkin.html?cohort=${cid}&month=${mi}&y=2025`;
+  document.getElementById('qr-output').innerHTML=`<div class="qr-layout" style="margin-top:1rem">
+    <div class="qr-box"><div class="qr-inner" id="qr-c"></div><div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:4px">${c.name}</div><div style="font-size:12px;color:var(--text2);margin-bottom:8px">${MON[parseInt(mi)]} 2025</div><button class="btn-sm primary" style="width:100%" onclick="window.print()">Print QR</button></div>
+    <div><div style="font-size:12px;color:var(--text2);margin-bottom:10px">Share this link or display the QR for students to scan:</div><div class="curl">${url}</div><button class="btn-sm" style="margin-top:8px" onclick="navigator.clipboard.writeText('${url}').then(()=>alert('Copied!'))">Copy link</button><div style="margin-top:1rem;padding:12px;background:var(--navy-light);border-radius:var(--radius-sm)"><div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:4px">How it works</div><div style="font-size:12px;color:var(--text2)">Students scan → enter MAD ID + name → attendance recorded automatically.</div></div></div>
+  </div>`;
+  setTimeout(()=>{const el=document.getElementById('qr-c');if(el)new QRCode(el,{text:url,width:120,height:120,colorDark:'#1B2F5E',colorLight:'#ffffff'});},100);
+}
+function generateQR(){gQR();}
+function rFU(){const base=window.location.href.replace('index.html','').replace(/\/$/,'');const el=document.getElementById('facilitator-url');if(el)el.textContent=base+'/facilitator.html';}
+function copyFacilitatorUrl(){navigator.clipboard.writeText(document.getElementById('facilitator-url').textContent).then(()=>alert('Copied!'));}
+function expC(cid){
+  const c=S.cohorts.find(x=>x.id===cid),sts=S.students.filter(s=>s.cohort_id===cid);
+  let csv='Student ID,Name,';MO.forEach((m,i)=>{if(i>=PSM)csv+=m+',';});csv+='Total,Status\n';
+  sts.forEach(s=>{csv+=`${s.student_id},${s.full_name},`;MO.forEach((_,i)=>{if(i<PSM)return;const a=S.attendance.find(a=>a.student_id===s.student_id&&a.month===i&&a.present);csv+=(a?'Present':'Absent')+',';});csv+=gAC(s.student_id)+','+(isFl(s.student_id)?'Flagged':'Active')+'\n';});
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=`${c.name.replace(' ','_')}_attendance.csv`;a.click();
+}
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+async function handleXlsx(event) {
+  const al = document.getElementById('reg-alert');
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    try {
+      const wb = XLSX.read(e.target.result, {type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, {header:1});
+      // Find header row (row with 'Full Name')
+      let dataStart = -1;
+      for (let i = 0; i < rows.length; i++) {
+        if (rows[i].some(c => String(c||'').toLowerCase().includes('full name'))) { dataStart = i + 1; break; }
+      }
+      if (dataStart === -1) { sAl(al,'error','Could not find headers. Make sure you used the template.'); return; }
+      const toImport = [];
+      const errors = [];
+      for (let i = dataStart; i < rows.length; i++) {
+        const row = rows[i];
+        const name = String(row[1]||'').trim();
+        const cohortNum = parseInt(row[2]);
+        if (!name || name.toLowerCase().includes('e.g.')) continue;
+        if (!name) { errors.push(`Row ${i+1}: Missing name`); continue; }
+        if (isNaN(cohortNum) || cohortNum < 1 || cohortNum > 8) { errors.push(`Row ${i+1}: Invalid cohort number "${row[2]}" for ${name}`); continue; }
+        const cohort = S.cohorts.find(c => c.id === cohortNum);
+        if (!cohort) { errors.push(`Row ${i+1}: Cohort ${cohortNum} not found`); continue; }
+        toImport.push({ name, cohortId: cohortNum });
+      }
+      if (errors.length > 0) { sAl(al,'error','Errors found:\n' + errors.join('\n')); document.getElementById('xlsx-upload').value=''; return; }
+      if (toImport.length === 0) { sAl(al,'error','No valid student rows found in the file.'); return; }
+      if (!confirm(`Import ${toImport.length} students? This cannot be undone.`)) return;
+      sAl(al,'info',`Importing ${toImport.length} students...`);
+      let count = 0, startNum = S.students.length + 1;
+      for (const s of toImport) {
+        const sid = 'MAD-' + String(startNum++).padStart(3,'0');
+        const res = await api('students','POST',{student_id:sid,full_name:s.name,cohort_id:s.cohortId});
+        S.students.push(res[0]);
+        count++;
+      }
+      sAl(al,'success',`Successfully imported ${count} students!`);
+      document.getElementById('xlsx-upload').value='';
+      rST(); rOv();
+    } catch(err) { sAl(al,'error','Error reading file: ' + err.message); }
+  };
+  reader.readAsArrayBuffer(file);
+}
+</script>
+</body>
+</html>

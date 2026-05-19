@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Columna MAD — Facilitator Check-in</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--bg2:#161b25;--bg3:#1e2535;--bg4:#252d3d;
+  --border:#2a3347;--border2:#3a4a6b;
+  --text:#e8edf5;--text2:#8a9bb5;--text3:#4a5a75;
+  --green:#1db87a;--green2:#0d6b47;--green3:#0a4a31;
+  --blue:#3d8ef0;--blue2:#1a5cb5;--blue3:#0f3d7a;
+  --amber:#f0a030;--amber2:#a06010;--amber3:#6a3d08;
+  --red:#e04545;--red2:#8a2020;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:2rem}
+.header{text-align:center;margin-bottom:2rem}
+.logo{font-size:11px;color:var(--text3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:4px}
+.title{font-size:22px;font-weight:600;color:var(--text)}
+.sub{font-size:13px;color:var(--text2);margin-top:4px}
+.setup-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.5rem;max-width:500px;margin:0 auto 2rem}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:12px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.08em}
+.form-group select,.form-group input{width:100%;padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif}
+.form-group select:focus,.form-group input:focus{outline:none;border-color:var(--blue)}
+.form-group select option{background:var(--bg3)}
+.btn{padding:10px 20px;background:var(--blue);color:white;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;width:100%;transition:background 0.15s}
+.btn:hover{background:var(--blue2)}
+.session-view{display:none;max-width:700px;margin:0 auto}
+.session-header{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.session-title{font-size:16px;font-weight:600;color:var(--text)}
+.session-meta{font-size:13px;color:var(--text2);margin-top:2px}
+.stat-chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{padding:4px 12px;border-radius:999px;font-size:12px;border:1px solid var(--border);color:var(--text2)}
+.chip.green{background:var(--green3);color:var(--green);border-color:var(--green2)}
+.chip.amber{background:var(--amber3);color:var(--amber);border-color:var(--amber2)}
+.student-list{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.student-row{display:grid;grid-template-columns:100px 1fr 120px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);transition:background 0.1s}
+.student-row:last-child{border-bottom:none}
+.student-row:hover{background:var(--bg3)}
+.student-row.header{background:var(--bg3);font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;padding:8px 16px}
+.student-id{font-family:'DM Mono',monospace;font-size:12px;color:var(--text2)}
+.student-name{font-size:14px;color:var(--text)}
+.toggle-wrap{display:flex;align-items:center;gap:10px;justify-content:flex-end}
+.toggle{width:44px;height:24px;border-radius:12px;border:none;cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0}
+.toggle.on{background:var(--green)}
+.toggle.off{background:var(--bg4);border:1px solid var(--border2)}
+.toggle::after{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:white;top:3px;transition:left 0.2s}
+.toggle.on::after{left:23px}
+.toggle.off::after{left:3px}
+.badge{display:inline-block;padding:2px 10px;border-radius:4px;font-size:12px}
+.badge.present{background:var(--green3);color:var(--green)}
+.badge.absent{background:var(--bg4);color:var(--text3)}
+.save-bar{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center}
+.save-status{font-size:13px;color:var(--text2)}
+.save-status.saved{color:var(--green)}
+.btn-save{padding:10px 24px;background:var(--green2);color:white;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif}
+.btn-save:hover{background:var(--green)}
+.alert{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:1rem;display:none;text-align:center}
+.alert.error{background:#5a1515;color:var(--red);border:1px solid var(--red2)}
+.alert.success{background:var(--green3);color:var(--green);border:1px solid var(--green2)}
+.loading{text-align:center;padding:3rem;color:var(--text3)}
+.back-btn{padding:6px 14px;background:transparent;color:var(--text2);border:1px solid var(--border);border-radius:6px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.back-btn:hover{background:var(--bg3)}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">Columna Consulting · MAD Foundation</div>
+  <div class="title">Facilitator Check-in</div>
+  <div class="sub">Mark attendance for students who cannot scan the QR code</div>
+</div>
+
+<!-- SETUP -->
+<div class="setup-card" id="setup-card">
+  <div id="setup-alert" class="alert error"></div>
+  <div class="form-group">
+    <label>Your name</label>
+    <input id="fac-name-input" placeholder="Your full name">
+  </div>
+  <div class="form-group">
+    <label>Your cohort</label>
+    <select id="cohort-select"><option>Loading cohorts...</option></select>
+  </div>
+  <div class="form-group">
+    <label>Session month</label>
+    <select id="month-select">
+      <option value="2">July 2025</option>
+      <option value="3">August 2025</option>
+      <option value="4">September 2025</option>
+      <option value="5">October 2025</option>
+      <option value="6">November 2025</option>
+      <option value="7">December 2025</option>
+    </select>
+  </div>
+  <button class="btn" onclick="loadSession()">Load session</button>
+</div>
+
+<!-- SESSION VIEW -->
+<div class="session-view" id="session-view">
+  <div class="session-header">
+    <div>
+      <div class="session-title" id="session-title">—</div>
+      <div class="session-meta" id="session-meta">—</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <div class="stat-chips" id="stat-chips"></div>
+      <button class="back-btn" onclick="goBack()">← Change session</button>
+    </div>
+  </div>
+  <div id="session-alert" class="alert"></div>
+  <div class="student-list" id="student-list">
+    <div class="loading">Loading students...</div>
+  </div>
+  <div style="height:70px"></div>
+</div>
+
+<div class="save-bar" id="save-bar" style="display:none">
+  <div class="save-status" id="save-status">Unsaved changes</div>
+  <button class="btn-save" onclick="saveAll()">Save attendance</button>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://jipuejubzctpxdgpvxuh.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImppcHVlanViemN0cHhkZ3B2eHVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MDU1OTgsImV4cCI6MjA5NDM4MTU5OH0.ZJGK9eBzAgWp_NFeod7yYcRJiT1RzczHALxbjQzPTkU';
+const MONTH_NAMES = ['May','June','July','August','September','October','November','December'];
+
+let state = { cohorts:[], students:[], attendance:[], cohortId:null, monthIdx:null, changes:{} };
+
+async function api(path, method='GET', body=null) {
+  const opts = { method, headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', 'Prefer': method==='POST'?'return=representation':'' } };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(SUPABASE_URL + '/rest/v1/' + path, opts);
+  if (!r.ok) { const e = await r.json(); throw new Error(e.message||'API error'); }
+  return r.status === 204 ? null : r.json();
+}
+
+async function init() {
+  try {
+    state.cohorts = await api('cohorts?order=id');
+    const sel = document.getElementById('cohort-select');
+    sel.innerHTML = state.cohorts.map(c=>`<option value="${c.id}">${c.name}${c.facilitator?' — '+c.facilitator:''}</option>`).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function loadSession() {
+  const facName = document.getElementById('fac-name-input').value.trim();
+  const cohortId = parseInt(document.getElementById('cohort-select').value);
+  const monthIdx = parseInt(document.getElementById('month-select').value);
+  const alert = document.getElementById('setup-alert');
+
+  if (!facName) { showAlert(alert,'error','Please enter your name'); return; }
+
+  state.cohortId = cohortId;
+  state.monthIdx = monthIdx;
+  state.changes = {};
+
+  try {
+    const [students, attendance] = await Promise.all([
+      api(`students?cohort_id=eq.${cohortId}&order=student_id`),
+      api(`attendance?cohort_id=eq.${cohortId}&month=eq.${monthIdx}&year=eq.2025`)
+    ]);
+    state.students = students || [];
+    state.attendance = attendance || [];
+
+    const cohort = state.cohorts.find(c=>c.id===cohortId);
+    document.getElementById('session-title').textContent = `${cohort.name} · ${MONTH_NAMES[monthIdx]} 2025`;
+    document.getElementById('session-meta').textContent = `Facilitator: ${facName} · ${state.students.length} students`;
+
+    document.getElementById('setup-card').style.display = 'none';
+    document.getElementById('session-view').style.display = 'block';
+    document.getElementById('save-bar').style.display = 'flex';
+
+    renderStudents();
+    renderStats();
+  } catch(e) {
+    showAlert(alert,'error','Error loading session: '+e.message);
+  }
+}
+
+function isPresent(studentId) {
+  if (studentId in state.changes) return state.changes[studentId];
+  const rec = state.attendance.find(a=>a.student_id===studentId);
+  return rec ? rec.present : false;
+}
+
+function renderStudents() {
+  const list = document.getElementById('student-list');
+  if (state.students.length === 0) {
+    list.innerHTML = '<div class="loading">No students registered in this cohort yet.</div>';
+    return;
+  }
+  list.innerHTML = `
+    <div class="student-row header">
+      <span>Student ID</span><span>Full Name</span><span style="text-align:right">Attendance</span>
+    </div>
+    ${state.students.map(s=>{
+      const present = isPresent(s.student_id);
+      return `<div class="student-row" id="row-${s.student_id}">
+        <div class="student-id">${s.student_id}</div>
+        <div class="student-name">${s.full_name}</div>
+        <div class="toggle-wrap">
+          <span class="badge ${present?'present':'absent'}" id="badge-${s.student_id}">${present?'Present':'Absent'}</span>
+          <button class="toggle ${present?'on':'off'}" id="toggle-${s.student_id}" onclick="toggleStudent('${s.student_id}')"></button>
+        </div>
+      </div>`;
+    }).join('')}
+  `;
+}
+
+function toggleStudent(studentId) {
+  const current = isPresent(studentId);
+  state.changes[studentId] = !current;
+  const toggle = document.getElementById('toggle-'+studentId);
+  const badge = document.getElementById('badge-'+studentId);
+  toggle.className = 'toggle ' + (state.changes[studentId]?'on':'off');
+  badge.className = 'badge ' + (state.changes[studentId]?'present':'absent');
+  badge.textContent = state.changes[studentId]?'Present':'Absent';
+  document.getElementById('save-status').className = 'save-status';
+  document.getElementById('save-status').textContent = `${Object.keys(state.changes).length} unsaved change(s)`;
+  renderStats();
+}
+
+function renderStats() {
+  const presentCount = state.students.filter(s=>isPresent(s.student_id)).length;
+  document.getElementById('stat-chips').innerHTML = `
+    <div class="chip green">${presentCount} present</div>
+    <div class="chip">${state.students.length - presentCount} absent</div>
+  `;
+}
+
+async function saveAll() {
+  const saveBtn = document.querySelector('.btn-save');
+  saveBtn.textContent = 'Saving...';
+  saveBtn.disabled = true;
+  try {
+    for (const [studentId, present] of Object.entries(state.changes)) {
+      const existing = state.attendance.find(a=>a.student_id===studentId);
+      if (existing) {
+        await api(`attendance?id=eq.${existing.id}`, 'PATCH', { present, marked_by:'facilitator' });
+        existing.present = present;
+      } else {
+        const res = await api('attendance', 'POST', { student_id:studentId, cohort_id:state.cohortId, month:state.monthIdx, year:2025, present, marked_by:'facilitator' });
+        state.attendance.push(res[0]);
+      }
+    }
+    state.changes = {};
+    const status = document.getElementById('save-status');
+    status.className = 'save-status saved';
+    status.textContent = '✓ All saved';
+    saveBtn.textContent = 'Save attendance';
+    saveBtn.disabled = false;
+    const alert = document.getElementById('session-alert');
+    showAlert(alert,'success','Attendance saved successfully');
+  } catch(e) {
+    saveBtn.textContent = 'Save attendance';
+    saveBtn.disabled = false;
+    const alert = document.getElementById('session-alert');
+    showAlert(alert,'error','Error saving: '+e.message);
+  }
+}
+
+function goBack() {
+  if (Object.keys(state.changes).length > 0) {
+    if (!confirm('You have unsaved changes. Go back anyway?')) return;
+  }
+  document.getElementById('setup-card').style.display = 'block';
+  document.getElementById('session-view').style.display = 'none';
+  document.getElementById('save-bar').style.display = 'none';
+  state.changes = {};
+}
+
+function showAlert(el, type, msg) {
+  el.className = 'alert ' + type;
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(()=>el.style.display='none', 4000);
+}
+
+init();
+</script>
+</body>
+</html>

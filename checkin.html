@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Columna MAD — Session Check-in</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--bg2:#161b25;--bg3:#1e2535;
+  --border:#2a3347;--border2:#3a4a6b;
+  --text:#e8edf5;--text2:#8a9bb5;--text3:#4a5a75;
+  --green:#1db87a;--green2:#0d6b47;--green3:#0a4a31;
+  --blue:#3d8ef0;--blue2:#1a5cb5;
+  --red:#e04545;--red2:#8a2020;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:2rem;width:100%;max-width:400px}
+.logo{font-size:11px;color:var(--text3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px;text-align:center}
+.title{font-size:20px;font-weight:600;color:var(--text);text-align:center;margin-bottom:4px}
+.cohort-badge{display:inline-block;padding:4px 14px;background:var(--blue2);color:var(--blue);border-radius:999px;font-size:13px;font-weight:500;text-align:center;margin:0 auto 1.5rem;display:block;width:fit-content;margin:8px auto 1.5rem}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:12px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.08em}
+.form-group input{width:100%;padding:13px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:16px;font-family:'DM Sans',sans-serif}
+.form-group input:focus{outline:none;border-color:var(--blue)}
+.btn{width:100%;padding:14px;background:var(--blue);color:white;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:6px;transition:background 0.15s}
+.btn:hover{background:var(--blue2)}
+.btn:disabled{opacity:0.5;cursor:default}
+.alert{padding:12px 14px;border-radius:8px;font-size:14px;margin-bottom:1rem;display:none;text-align:center}
+.alert.success{background:var(--green3);color:var(--green);border:1px solid var(--green2)}
+.alert.error{background:#5a1515;color:var(--red);border:1px solid var(--red2)}
+.success-screen{display:none;text-align:center}
+.success-icon{font-size:48px;margin-bottom:1rem}
+.success-title{font-size:20px;font-weight:600;color:var(--green);margin-bottom:8px}
+.success-sub{font-size:14px;color:var(--text2);margin-bottom:1rem}
+.success-id{font-family:monospace;font-size:13px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);margin-bottom:1.5rem}
+.session-info{background:var(--bg3);border-radius:8px;padding:10px 14px;margin-bottom:1.25rem;font-size:13px;color:var(--text2);text-align:center}
+.session-info span{color:var(--text);font-weight:500}
+.loading{text-align:center;padding:2rem;color:var(--text2)}
+</style>
+</head>
+<body>
+<div class="card" id="main-card">
+  <div id="loading-screen" class="loading">Loading session...</div>
+
+  <div id="form-screen" style="display:none">
+    <div class="logo">Columna Consulting</div>
+    <div class="title">Session Check-in</div>
+    <div class="cohort-badge" id="cohort-badge">Loading...</div>
+    <div class="session-info" id="session-info">Loading...</div>
+    <div id="alert" class="alert"></div>
+    <div class="form-group">
+      <label>Student ID</label>
+      <input type="text" id="student-id" placeholder="e.g. MAD-001" autocomplete="off" autocapitalize="characters">
+    </div>
+    <div class="form-group">
+      <label>Full name</label>
+      <input type="text" id="student-name" placeholder="Name Surname" autocomplete="name">
+    </div>
+    <button class="btn" id="submit-btn" onclick="submitCheckin()">Check in</button>
+    <div style="font-size:11px;color:var(--text3);text-align:center;margin-top:12px">First time? Your ID is on your registration card.</div>
+  </div>
+
+  <div id="success-screen" class="success-screen">
+    <div class="success-icon">✅</div>
+    <div class="success-title">Checked in!</div>
+    <div class="success-sub">Your attendance has been recorded.</div>
+    <div class="success-id" id="success-detail"></div>
+    <div style="font-size:13px;color:var(--text3)">You can close this page.</div>
+  </div>
+
+  <div id="error-screen" style="display:none;text-align:center;padding:1rem">
+    <div style="font-size:32px;margin-bottom:1rem">⚠️</div>
+    <div style="font-size:16px;font-weight:500;color:var(--text);margin-bottom:8px">Invalid session link</div>
+    <div style="font-size:13px;color:var(--text2)">Please scan the QR code again or contact your facilitator.</div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://jipuejubzctpxdgpvxuh.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImppcHVlanViemN0cHhkZ3B2eHVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MDU1OTgsImV4cCI6MjA5NDM4MTU5OH0.ZJGK9eBzAgWp_NFeod7yYcRJiT1RzczHALxbjQzPTkU';
+const MONTH_NAMES = ['May','June','July','August','September','October','November','December'];
+
+const params = new URLSearchParams(window.location.search);
+const cohortId = parseInt(params.get('cohort'));
+const monthIdx = parseInt(params.get('month'));
+const year = parseInt(params.get('y')) || 2025;
+
+async function api(path, method='GET', body=null) {
+  const opts = { method, headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', 'Prefer': method==='POST'?'return=representation':'' } };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(SUPABASE_URL + '/rest/v1/' + path, opts);
+  if (!r.ok) { const e = await r.json(); throw new Error(e.message||'API error'); }
+  return r.status === 204 ? null : r.json();
+}
+
+async function init() {
+  if (!cohortId || isNaN(monthIdx)) {
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('error-screen').style.display = 'block';
+    return;
+  }
+  try {
+    const cohorts = await api(`cohorts?id=eq.${cohortId}`);
+    const cohort = cohorts[0];
+    if (!cohort) throw new Error('Cohort not found');
+    document.getElementById('cohort-badge').textContent = cohort.name;
+    document.getElementById('session-info').innerHTML = `<span>${MONTH_NAMES[monthIdx]} ${year}</span> session · ${cohort.facilitator || 'MAD Foundation'}`;
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('form-screen').style.display = 'block';
+  } catch(e) {
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('error-screen').style.display = 'block';
+  }
+}
+
+function showAlert(type, msg) {
+  const el = document.getElementById('alert');
+  el.className = 'alert ' + type;
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+async function submitCheckin() {
+  const studentId = document.getElementById('student-id').value.trim().toUpperCase();
+  const name = document.getElementById('student-name').value.trim();
+  const btn = document.getElementById('submit-btn');
+
+  if (!studentId || !name) { showAlert('error', 'Please fill in both fields'); return; }
+  if (!studentId.startsWith('MAD-')) { showAlert('error', 'Student ID must start with MAD- (e.g. MAD-001)'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Checking in...';
+
+  try {
+    // Verify student exists and belongs to this cohort
+    const students = await api(`students?student_id=eq.${studentId}`);
+    if (students.length === 0) { showAlert('error', 'Student ID not found. Check your ID or contact your facilitator.'); btn.disabled=false; btn.textContent='Check in'; return; }
+    const student = students[0];
+    if (student.cohort_id !== cohortId) { showAlert('error', 'You are registered in a different cohort. Please contact your facilitator.'); btn.disabled=false; btn.textContent='Check in'; return; }
+    if (student.full_name.toLowerCase() !== name.toLowerCase()) { showAlert('error', 'Name does not match our records. Check your spelling.'); btn.disabled=false; btn.textContent='Check in'; return; }
+
+    // Check already checked in
+    const existing = await api(`attendance?student_id=eq.${studentId}&month=eq.${monthIdx}&year=eq.${year}&cohort_id=eq.${cohortId}`);
+    if (existing.length > 0) {
+      document.getElementById('form-screen').style.display = 'none';
+      document.getElementById('success-screen').style.display = 'block';
+      document.getElementById('success-detail').textContent = `${studentId} · ${student.full_name} · Already recorded`;
+      return;
+    }
+
+    // Record attendance
+    await api('attendance', 'POST', { student_id: studentId, cohort_id: cohortId, month: monthIdx, year, present: true, marked_by: 'qr' });
+
+    document.getElementById('form-screen').style.display = 'none';
+    document.getElementById('success-screen').style.display = 'block';
+    document.getElementById('success-detail').textContent = `${studentId} · ${student.full_name} · ${MONTH_NAMES[monthIdx]} ${year}`;
+  } catch(e) {
+    showAlert('error', 'Something went wrong. Please try again.');
+    btn.disabled = false;
+    btn.textContent = 'Check in';
+  }
+}
+
+init();
+</script>
+</body>
+</html>
