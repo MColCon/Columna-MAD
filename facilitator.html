@@ -89,12 +89,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="form-group">
     <label>Session month</label>
     <select id="month-select">
-      <option value="2">July 2025</option>
-      <option value="3">August 2025</option>
-      <option value="4">September 2025</option>
-      <option value="5">October 2025</option>
-      <option value="6">November 2025</option>
-      <option value="7">December 2025</option>
+      <option value="2">July 2026</option>
+      <option value="3">August 2026</option>
+      <option value="4">September 2026</option>
+      <option value="5">October 2026</option>
+      <option value="6">November 2026</option>
+      <option value="7">December 2026</option>
     </select>
   </div>
   <button class="btn" onclick="loadSession()">Load session</button>
@@ -162,13 +162,13 @@ async function loadSession() {
   try {
     const [students, attendance] = await Promise.all([
       api(`students?cohort_id=eq.${cohortId}&order=student_id`),
-      api(`attendance?cohort_id=eq.${cohortId}&month=eq.${monthIdx}&year=eq.2025`)
+      api(`attendance?cohort_id=eq.${cohortId}&month=eq.${monthIdx}&year=eq.2026`)
     ]);
     state.students = students || [];
     state.attendance = attendance || [];
 
     const cohort = state.cohorts.find(c=>c.id===cohortId);
-    document.getElementById('session-title').textContent = `${cohort.name} · ${MONTH_NAMES[monthIdx]} 2025`;
+    document.getElementById('session-title').textContent = `${cohort.name} · ${MONTH_NAMES[monthIdx]} 2026`;
     document.getElementById('session-meta').textContent = `Facilitator: ${facName} · ${state.students.length} students`;
 
     document.getElementById('setup-card').style.display = 'none';
@@ -244,7 +244,7 @@ async function saveAll() {
         await api(`attendance?id=eq.${existing.id}`, 'PATCH', { present, marked_by:'facilitator' });
         existing.present = present;
       } else {
-        const res = await api('attendance', 'POST', { student_id:studentId, cohort_id:state.cohortId, month:state.monthIdx, year:2025, present, marked_by:'facilitator' });
+        const res = await api('attendance', 'POST', { student_id:studentId, cohort_id:state.cohortId, month:state.monthIdx, year:2026, present, marked_by:'facilitator' });
         state.attendance.push(res[0]);
       }
     }

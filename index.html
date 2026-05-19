@@ -180,7 +180,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-
   <div class="main">
     <div class="page active" id="page-overview">
       <div class="page-header">
-        <div><div class="page-title">Good morning, Marko 👋</div><div class="page-sub">MAD Foundation sRQi Rollout · May–December 2025</div></div>
+        <div><div class="page-title">Good morning, Marko 👋</div><div class="page-sub">MAD Foundation sRQi Rollout · May–December 2026</div></div>
         <button class="btn" onclick="window.print()">Export report</button>
       </div>
       <div class="metrics" id="overview-metrics">
@@ -387,9 +387,9 @@ function selM(i){S.month=i;if(S.pod)rPD(S.pod);}
 
 async function togAtt(sid,cid,mo,cur){
   try{
-    const ex=S.attendance.find(a=>a.student_id===sid&&a.cohort_id===cid&&a.month===mo&&a.year===2025);
+    const ex=S.attendance.find(a=>a.student_id===sid&&a.cohort_id===cid&&a.month===mo&&a.year===2026);
     if(ex){await api(`attendance?id=eq.${ex.id}`,'PATCH',{present:!cur,marked_by:'admin'});ex.present=!cur;}
-    else{const res=await api('attendance','POST',{student_id:sid,cohort_id:cid,month:mo,year:2025,present:true,marked_by:'admin'});S.attendance.push(res[0]);}
+    else{const res=await api('attendance','POST',{student_id:sid,cohort_id:cid,month:mo,year:2026,present:true,marked_by:'admin'});S.attendance.push(res[0]);}
     rPD(cid);rOv();
   }catch(e){alert('Error: '+e.message);}
 }
@@ -469,9 +469,9 @@ function gQR(){
   if(!cid||mi===undefined)return;
   const c=S.cohorts.find(x=>x.id===parseInt(cid));if(!c)return;
   const base=window.location.href.replace('index.html','').replace(/\/$/,'');
-  const url=`${base}/checkin.html?cohort=${cid}&month=${mi}&y=2025`;
+  const url=`${base}/checkin.html?cohort=${cid}&month=${mi}&y=2026`;
   document.getElementById('qr-output').innerHTML=`<div class="qr-layout" style="margin-top:1rem">
-    <div class="qr-box"><div class="qr-inner" id="qr-c"></div><div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:4px">${c.name}</div><div style="font-size:12px;color:var(--text2);margin-bottom:8px">${MON[parseInt(mi)]} 2025</div><button class="btn-sm primary" style="width:100%" onclick="window.print()">Print QR</button></div>
+    <div class="qr-box"><div class="qr-inner" id="qr-c"></div><div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:4px">${c.name}</div><div style="font-size:12px;color:var(--text2);margin-bottom:8px">${MON[parseInt(mi)]} 2026</div><button class="btn-sm primary" style="width:100%" onclick="window.print()">Print QR</button></div>
     <div><div style="font-size:12px;color:var(--text2);margin-bottom:10px">Share this link or display the QR for students to scan:</div><div class="curl">${url}</div><button class="btn-sm" style="margin-top:8px" onclick="navigator.clipboard.writeText('${url}').then(()=>alert('Copied!'))">Copy link</button><div style="margin-top:1rem;padding:12px;background:var(--navy-light);border-radius:var(--radius-sm)"><div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:4px">How it works</div><div style="font-size:12px;color:var(--text2)">Students scan → enter MAD ID + name → attendance recorded automatically.</div></div></div>
   </div>`;
   setTimeout(()=>{const el=document.getElementById('qr-c');if(el)new QRCode(el,{text:url,width:120,height:120,colorDark:'#1B2F5E',colorLight:'#ffffff'});},100);
