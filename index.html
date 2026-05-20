@@ -50,7 +50,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-
 .page-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px}
 .page-title{font-size:12px;font-weight:700;color:var(--navy)}
 .page-sub{font-size:12px;color:var(--text2);margin-top:3px}
-.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:1.5rem}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:1.5rem}
 .metric{background:var(--surface);border-radius:var(--radius-lg);padding:1.25rem 1.25rem 1rem;box-shadow:0 2px 8px rgba(27,47,94,0.07);position:relative;overflow:hidden}
 .metric::before{content:'';position:absolute;top:0;left:0;right:0;height:4px}
 .metric.mnavy::before{background:var(--navy)}.metric.mred::before{background:var(--red)}.metric.mgreen::before{background:var(--green)}.metric.mamber::before{background:var(--amber)}
@@ -62,7 +62,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-
 .metric-sub{font-size:12px;color:var(--text3);margin-top:4px}
 .card{background:var(--surface);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1rem;box-shadow:0 2px 8px rgba(27,47,94,0.07)}
 .card-title{font-size:12px;font-weight:600;color:var(--navy);margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between}
-.pods-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1rem}
+.pods-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1rem}
 .pod-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:1rem;cursor:pointer;transition:all 0.15s;box-shadow:0 2px 6px rgba(27,47,94,0.05)}
 .pod-card:hover{border-color:var(--navy-mid);box-shadow:0 4px 16px rgba(27,47,94,0.12);transform:translateY(-1px)}
 .pod-card.selected{border-color:var(--navy);box-shadow:0 4px 16px rgba(27,47,94,0.15)}
@@ -192,7 +192,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-
         </div>
       </div>
       <div class="metrics" id="overview-metrics">
-        <div class="metric mnavy"><div class="metric-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B2F5E" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="metric-label">Total Students</div><div class="metric-value">—</div><div class="metric-sub">of 87 expected</div></div>
+        <div class="metric mnavy"><div class="metric-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B2F5E" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="metric-label">Total Students</div><div class="metric-value">—</div><div class="metric-sub">of 90 expected</div></div>
         <div class="metric mgreen"><div class="metric-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div><div class="metric-label">Attendance Logged</div><div class="metric-value">—</div><div class="metric-sub">Loading...</div></div>
         <div class="metric mred"><div class="metric-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F04156" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div class="metric-label">Flagged Students</div><div class="metric-value">—</div><div class="metric-sub">3+ missed sessions</div></div>
         <div class="metric mamber"><div class="metric-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><div class="metric-label">Sessions Run</div><div class="metric-value">—</div><div class="metric-sub">of 6 pod months</div></div>
@@ -325,7 +325,7 @@ function rOv(){
   const sr=Math.max(0,CM-PSM+1);
   const pct=tot>0&&sr>0?Math.round(att/(tot*sr)*100):0;
   document.getElementById('overview-metrics').innerHTML=`
-    <div class="metric mnavy"><div class="metric-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B2F5E" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="metric-label">Total Students</div><div class="metric-value">${tot}</div><div class="metric-sub">of 87 expected</div></div>
+    <div class="metric mnavy"><div class="metric-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B2F5E" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="metric-label">Total Students</div><div class="metric-value">${tot}</div><div class="metric-sub">of 90 expected</div></div>
     <div class="metric mgreen"><div class="metric-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div><div class="metric-label">Attendance Logged</div><div class="metric-value">${att}</div><div class="metric-sub">${pct}% rate</div></div>
     <div class="metric mred"><div class="metric-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F04156" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div class="metric-label">Flagged Students</div><div class="metric-value">${fl}</div><div class="metric-sub">3+ missed sessions</div></div>
     <div class="metric mamber"><div class="metric-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><div class="metric-label">Sessions Run</div><div class="metric-value">${sr}</div><div class="metric-sub">of 6 pod months</div></div>
@@ -407,7 +407,7 @@ function rST(){
   const f=S.students.filter(s=>s.full_name.toLowerCase().includes(q.toLowerCase())||s.student_id.toLowerCase().includes(q.toLowerCase()));
   const fl=S.students.filter(s=>isFl(s.student_id)).length;
   const ss=document.getElementById('student-stats');
-  if(ss)ss.innerHTML=`<div class="stat-chip"><span>${S.students.length}</span>registered</div><div class="stat-chip"><span>${87-S.students.length}</span>spots left</div><div class="stat-chip" style="border-color:var(--amber)"><span style="color:var(--amber)">${fl}</span>flagged</div>`;
+  if(ss)ss.innerHTML=`<div class="stat-chip"><span>${S.students.length}</span>registered</div><div class="stat-chip"><span>${90-S.students.length}</span>spots left</div><div class="stat-chip" style="border-color:var(--amber)"><span style="color:var(--amber)">${fl}</span>flagged</div>`;
   const tb=document.getElementById('student-tbody');if(!tb)return;
   if(!f.length){tb.innerHTML='<tr><td colspan="5" class="empty">No students found</td></tr>';return;}
   tb.innerHTML=f.map(s=>{const co=S.cohorts.find(c=>c.id===s.cohort_id);return`<tr><td>${s.student_id}</td><td>${s.full_name}${isFl(s.student_id)?'<span class="flag-badge" style="margin-left:6px">⚠</span>':''}</td><td>${co?co.name:'—'}</td><td>${gAC(s.student_id)}</td><td><span class="bdg ${isFl(s.student_id)?'flagged':'present'}">${isFl(s.student_id)?'Flagged':'Active'}</span></td></tr>`;}).join('');
@@ -520,7 +520,7 @@ async function handleXlsx(event) {
         const cohortNum = parseInt(row[2]);
         if (!name || name.toLowerCase().includes('e.g.')) continue;
         if (!name) { errors.push(`Row ${i+1}: Missing name`); continue; }
-        if (isNaN(cohortNum) || cohortNum < 1 || cohortNum > 8) { errors.push(`Row ${i+1}: Invalid cohort number "${row[2]}" for ${name}`); continue; }
+        if (isNaN(cohortNum) || cohortNum < 1 || cohortNum > 9) { errors.push(`Row ${i+1}: Invalid cohort number "${row[2]}" for ${name}`); continue; }
         const cohort = S.cohorts.find(c => c.id === cohortNum);
         if (!cohort) { errors.push(`Row ${i+1}: Cohort ${cohortNum} not found`); continue; }
         toImport.push({ name, cohortId: cohortNum });
