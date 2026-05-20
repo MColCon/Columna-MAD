@@ -516,11 +516,15 @@ async function handleXlsx(event) {
       const errors = [];
       for (let i = dataStart; i < rows.length; i++) {
         const row = rows[i];
+        const num = String(row[0]||'').trim().toLowerCase();
         const name = String(row[1]||'').trim();
-        const cohortNum = parseInt(row[2]);
-        if (!name || name.toLowerCase().includes('e.g.')) continue;
-        if (!name) { errors.push(`Row ${i+1}: Missing name`); continue; }
-        if (isNaN(cohortNum) || cohortNum < 1 || cohortNum > 9) { errors.push(`Row ${i+1}: Invalid cohort number "${row[2]}" for ${name}`); continue; }
+        const cohortRaw = row[2];
+        const cohortNum = parseInt(cohortRaw);
+        // Skip blank rows, example rows, instruction rows
+        if (!name) continue;
+        if (num === 'e.g.' || num === 'e.g' || name.toLowerCase() === 'thabo nkosi') continue;
+        if (String(name).toLowerCase().includes('rules:')) continue;
+        if (isNaN(cohortNum) || cohortNum < 1 || cohortNum > 9) { errors.push(`Row ${i+1}: Invalid cohort number "${cohortRaw}" for "${name}"`); continue; }
         const cohort = S.cohorts.find(c => c.id === cohortNum);
         if (!cohort) { errors.push(`Row ${i+1}: Cohort ${cohortNum} not found`); continue; }
         toImport.push({ name, cohortId: cohortNum });
