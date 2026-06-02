@@ -83,9 +83,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 </div>
 
 <script>
-const NEON='https://ep-wild-pine-abfoj8ih.eu-west-2.aws.neon.tech/sql';
-const NEON_AUTH='Basic '+btoa('neondb_owner:npg_Q59GLSDnmhEo');
-const NEON_CONN='postgresql://neondb_owner:npg_Q59GLSDnmhEo@ep-wild-pine-abfoj8ih.eu-west-2.aws.neon.tech/neondb';
+const NEON='https://ep-wild-pine-abfoj8ih.apirest.eu-west-2.aws.neon.tech/neondb/rest/v1';
+const NEON_KEY='npg_Q59GLSDnmhEo';
 const MONTH_NAMES = ['May','June','July','August','September','October','November','December'];
 
 const params = new URLSearchParams(window.location.search);
@@ -93,10 +92,12 @@ const cohortId = parseInt(params.get('cohort'));
 const monthIdx = parseInt(params.get('month'));
 const year = parseInt(params.get('y')) || 2026;
 
-async function api(sql, params=[]) {
-  const r = await fetch(NEON, {method:'POST', headers:{'Content-Type':'application/json','Authorization':NEON_AUTH,'Neon-Connection-String':NEON_CONN}, body:JSON.stringify({query:sql,params})});
-  if (!r.ok) { const e = await r.json(); throw new Error(JSON.stringify(e)); }
-  const d = await r.json(); return d.rows || [];
+async function api(path, method='GET', body=null) {
+  const opts = {method, headers: {'apikey': NEON_KEY, 'Authorization': 'Bearer '+NEON_KEY, 'Content-Type': 'application/json', 'Prefer': method==='POST'?'return=representation':''}};
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(NEON+'/'+path, opts);
+  if (!r.ok) { const e = await r.json(); throw new Error(e.message||'err'); }
+  return r.status === 204 ? null : r.json();
 }
 
 async function init() {
@@ -106,7 +107,7 @@ async function init() {
     return;
   }
   try {
-    const cohorts = await api('SELECT * FROM cohorts WHERE id=$1',[cohortId]);
+    const cohorts = await api(`cohorts?id=eq.${cohortId}`);
     const cohort = cohorts[0];
     if (!cohort) throw new Error('Cohort not found');
     document.getElementById('cohort-badge').textContent = cohort.name;
@@ -139,14 +140,14 @@ async function submitCheckin() {
 
   try {
     // Verify student exists and belongs to this cohort
-    const students = await api('SELECT * FROM students WHERE student_id=$1',[studentId]);
+    const students = await api(`students?student_id=eq.${studentId}`);
     if (students.length === 0) { showAlert('error', 'Student ID not found. Check your ID or contact your facilitator.'); btn.disabled=false; btn.textContent='Check in'; return; }
     const student = students[0];
     if (student.cohort_id !== cohortId) { showAlert('error', 'You are registered in a different cohort. Please contact your facilitator.'); btn.disabled=false; btn.textContent='Check in'; return; }
     if (student.full_name.toLowerCase() !== name.toLowerCase()) { showAlert('error', 'Name does not match our records. Check your spelling.'); btn.disabled=false; btn.textContent='Check in'; return; }
 
     // Check already checked in
-    const existing = await api('SELECT * FROM attendance WHERE student_id=$1 AND month=$2 AND cohort_id=$3',[studentId,monthIdx,cohortId]);
+    const existing = await api(`attendance?student_id=eq.${studentId}&month=eq.${monthIdx}&cohort_id=eq.${cohortId}`);
     if (existing.length > 0) {
       document.getElementById('form-screen').style.display = 'none';
       document.getElementById('success-screen').style.display = 'block';
@@ -155,7 +156,7 @@ async function submitCheckin() {
     }
 
     // Record attendance
-    await api('INSERT INTO attendance(student_id,cohort_id,month,year,present,marked_by) VALUES($1,$2,$3,$4,true,\'qr\')',[studentId,cohortId,monthIdx,year]);
+    await api('attendance','POST',{student_id:studentId,cohort_id:cohortId,month:monthIdx,year,present:true,marked_by:'qr'});
 
     document.getElementById('form-screen').style.display = 'none';
     document.getElementById('success-screen').style.display = 'block';

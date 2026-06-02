@@ -270,9 +270,8 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-
 
 <script>
 // SheetJS loaded via CDN below
-const NEON='https://ep-wild-pine-abfoj8ih.eu-west-2.aws.neon.tech/sql';
-const NEON_AUTH='Basic '+btoa('neondb_owner:npg_Q59GLSDnmhEo');
-const NEON_CONN='postgresql://neondb_owner:npg_Q59GLSDnmhEo@ep-wild-pine-abfoj8ih.eu-west-2.aws.neon.tech/neondb';
+const NEON='https://ep-wild-pine-abfoj8ih.apirest.eu-west-2.aws.neon.tech/neondb/rest/v1';
+const NEON_KEY='npg_Q59GLSDnmhEo';
 const PW='ColumnaisMAD';
 const MO=['May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const MON=['May','June','July','August','September','October','November','December'];
@@ -280,10 +279,12 @@ const CM=Math.min(Math.max(new Date().getMonth()-4,0),7);
 const PSM=2;
 let S={cohorts:[],students:[],attendance:[],milestones:[],pod:null,month:PSM};
 
-async function api(sql,params=[]){
-  const r=await fetch(NEON,{method:'POST',headers:{'Content-Type':'application/json','Authorization':NEON_AUTH,'Neon-Connection-String':NEON_CONN},body:JSON.stringify({query:sql,params})});
-  if(!r.ok){const e=await r.json();throw new Error(JSON.stringify(e));}
-  const d=await r.json();return d.rows||[];
+async function api(path,method='GET',body=null){
+  const opts={method,headers:{'apikey':NEON_KEY,'Authorization':'Bearer '+NEON_KEY,'Content-Type':'application/json','Prefer':method==='POST'?'return=representation':''}};
+  if(body)opts.body=JSON.stringify(body);
+  const r=await fetch(NEON+'/'+path,opts);
+  if(!r.ok){const e=await r.json();throw new Error(e.message||'err');}
+  return r.status===204?null:r.json();
 }
 
 function doLogin(){
@@ -297,7 +298,7 @@ function doLogout(){document.getElementById('loginScreen').style.display='flex';
 
 async function load(){
   try{
-    const [c,st,a,m]=await Promise.all([api('SELECT * FROM cohorts ORDER BY id'),api('SELECT * FROM students ORDER BY student_id'),api('SELECT * FROM attendance ORDER BY created_at'),api('SELECT * FROM milestones ORDER BY id')]);
+    const [c,st,a,m]=await Promise.all([api('cohorts?order=id'),api('students?order=student_id'),api('attendance?order=created_at'),api('milestones?order=id')]);
     S.cohorts=c||[];S.students=st||[];S.attendance=a||[];S.milestones=m||[];
     renderAll();
   }catch(e){console.error(e);}
@@ -395,8 +396,8 @@ function selM(i){S.month=i;if(S.pod)rPD(S.pod);}
 async function togAtt(sid,cid,mo,cur){
   try{
     const ex=S.attendance.find(a=>a.student_id===sid&&a.cohort_id===cid&&a.month===mo&&a.year===2026);
-    if(ex){await api(`UPDATE attendance SET present=$1, marked_by='admin' WHERE id=$2`,[!cur,ex.id]);ex.present=!cur;}
-    else{const res=await api(`INSERT INTO attendance(student_id,cohort_id,month,year,present,marked_by) VALUES($1,$2,$3,2026,true,'admin') RETURNING *`,[sid,cid,mo]);S.attendance.push(res[0]);}
+    if(ex){await api(`attendance?id=eq.${ex.id}`,'PATCH',{present:!cur,marked_by:'admin'});ex.present=!cur;}
+    else{const res=await api('attendance','POST',{student_id:sid,cohort_id:cid,month:mo,year:2026,present:true,marked_by:'admin'});S.attendance.push(res[0]);}
     rPD(cid);rOv();
   }catch(e){alert('Error: '+e.message);}
 }
@@ -424,7 +425,7 @@ async function registerStudent(){
   if(!name){sAl(al,'error','Please enter a full name');return;}
   try{
     const sid='MAD-'+String(S.students.length+1).padStart(3,'0');
-    const res=await api(`INSERT INTO students(student_id,full_name,cohort_id) VALUES($1,$2,$3) RETURNING *`,[sid,name,cid]);
+    const res=await api('students','POST',{student_id:sid,full_name:name,cohort_id:cid});
     S.students.push(res[0]);document.getElementById('reg-name').value='';
     sAl(al,'success',`Registered ${name} as ${sid}`);rST();rOv();
   }catch(e){sAl(al,'error','Error: '+e.message);}
@@ -433,7 +434,7 @@ async function registerStudent(){
 async function assignFacilitator(){
   const cid=parseInt(document.getElementById('fac-cohort').value);
   const name=document.getElementById('fac-name').value.trim();if(!name)return;
-  try{await api(`UPDATE cohorts SET facilitator=$1 WHERE id=$2`,[name,cid]);const c=S.cohorts.find(x=>x.id===cid);if(c)c.facilitator=name;document.getElementById('fac-name').value='';renderAll();}
+  try{await api(`cohorts?id=eq.${cid}`,'PATCH',{facilitator:name});const c=S.cohorts.find(x=>x.id===cid);if(c)c.facilitator=name;document.getElementById('fac-name').value='';renderAll();}
   catch(e){alert('Error: '+e.message);}
 }
 
@@ -465,7 +466,7 @@ function rTL(){
 async function togMS(key){
   const m=S.milestones.find(x=>x.key===key);if(!m)return;
   const nd=!m.done;
-  try{await api(`UPDATE milestones SET done=$1, completed_at=$2 WHERE key=$3`,[nd,nd?new Date().toISOString():null,key]);m.done=nd;m.completed_at=nd?new Date().toISOString():null;rTL();rOv();}
+  try{await api(`milestones?key=eq.${key}`,'PATCH',{done:nd,completed_at:nd?new Date().toISOString():null});m.done=nd;m.completed_at=nd?new Date().toISOString():null;rTL();rOv();}
   catch(e){alert('Error: '+e.message);}
 }
 
@@ -503,7 +504,7 @@ async function handleXlsx(event) {
   // Make sure cohorts are loaded from Neon before importing
   if (!S.cohorts || S.cohorts.length === 0) {
     try {
-      S.cohorts = await api('SELECT * FROM cohorts ORDER BY id');
+      S.cohorts = await api('cohorts?order=id');
     } catch(e) {
       sAl(al,'error','Could not connect to database. Please refresh and try again.');
       return;
@@ -545,7 +546,7 @@ async function handleXlsx(event) {
       let count = 0, startNum = S.students.length + 1;
       for (const s of toImport) {
         const sid = 'MAD-' + String(startNum++).padStart(3,'0');
-        const res = await api(`INSERT INTO students(student_id,full_name,cohort_id) VALUES($1,$2,$3) RETURNING *`,[sid,s.name,s.cohortId]);
+        const res = await api('students','POST',{student_id:sid,full_name:s.name,cohort_id:s.cohortId});
         S.students.push(res[0]);
         count++;
       }
