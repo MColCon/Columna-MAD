@@ -136,13 +136,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <script>
 const NEON='https://ep-wild-pine-abfoj8ih.apirest.eu-west-2.aws.neon.tech/neondb/rest/v1';
-const NEON_KEY='npg_c3XUVoWSeE8I';
 const MONTH_NAMES = ['May','June','July','August','September','October','November','December'];
 
 let state = { cohorts:[], students:[], attendance:[], cohortId:null, monthIdx:null, changes:{} };
 
 async function api(path, method='GET', body=null) {
-  const opts = {method, headers: {'apikey': NEON_KEY, 'Authorization': 'Bearer '+NEON_KEY, 'Content-Type': 'application/json', 'Prefer': method==='POST'?'return=representation':''}};
+  const opts = {method, headers: {'Content-Type': 'application/json', 'Prefer': method==='POST'?'return=representation':''}};
   if (body) opts.body = JSON.stringify(body);
   const r = await fetch(NEON+'/'+path, opts);
   if (!r.ok) { const e = await r.json(); throw new Error(e.message||'err'); }

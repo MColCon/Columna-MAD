@@ -271,7 +271,6 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-
 <script>
 // SheetJS loaded via CDN below
 const NEON='https://ep-wild-pine-abfoj8ih.apirest.eu-west-2.aws.neon.tech/neondb/rest/v1';
-const NEON_KEY='npg_c3XUVoWSeE8I';
 const PW='ColumnaisMAD';
 const MO=['May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const MON=['May','June','July','August','September','October','November','December'];
@@ -280,7 +279,7 @@ const PSM=2;
 let S={cohorts:[],students:[],attendance:[],milestones:[],pod:null,month:PSM};
 
 async function api(path,method='GET',body=null){
-  const opts={method,headers:{'apikey':NEON_KEY,'Authorization':'Bearer '+NEON_KEY,'Content-Type':'application/json','Prefer':method==='POST'?'return=representation':''}};
+  const opts={method,headers:{'Content-Type':'application/json','Prefer':method==='POST'?'return=representation':''}};
   if(body)opts.body=JSON.stringify(body);
   const r=await fetch(NEON+'/'+path,opts);
   if(!r.ok){const e=await r.json();throw new Error(e.message||'err');}
