@@ -135,16 +135,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 </div>
 
 <script>
-const NEON='https://ep-wild-pine-abfoj8ih.apirest.eu-west-2.aws.neon.tech/neondb/rest/v1';
+const SUPABASE_URL = 'https://jipuejubzctpxdgpvxuh.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImppcHVlanViemN0cHhkZ3B2eHVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MDU1OTgsImV4cCI6MjA5NDM4MTU5OH0.ZJGK9eBzAgWp_NFeod7yYcRJiT1RzczHALxbjQzPTkU';
 const MONTH_NAMES = ['May','June','July','August','September','October','November','December'];
 
 let state = { cohorts:[], students:[], attendance:[], cohortId:null, monthIdx:null, changes:{} };
 
 async function api(path, method='GET', body=null) {
-  const opts = {method, headers: {'Content-Type': 'application/json', 'Prefer': method==='POST'?'return=representation':''}};
+  const opts = { method, headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', 'Prefer': method==='POST'?'return=representation':'' } };
   if (body) opts.body = JSON.stringify(body);
-  const r = await fetch(NEON+'/'+path, opts);
-  if (!r.ok) { const e = await r.json(); throw new Error(e.message||'err'); }
+  const r = await fetch(SUPABASE_URL + '/rest/v1/' + path, opts);
+  if (!r.ok) { const e = await r.json(); throw new Error(e.message||'API error'); }
   return r.status === 204 ? null : r.json();
 }
 
@@ -216,7 +217,7 @@ function isPresent(studentId) {
 async function refreshSession() {
   if (!state.cohortId) return;
   try {
-    const attendance = await api(`attendance?cohort_id=eq.${state.cohortId}&month=eq.${state.monthIdx}`);
+    const attendance = await api(`attendance?cohort_id=eq.${state.cohortId}&month=eq.${state.monthIdx}&year=eq.2026`);
     state.attendance = attendance || [];
     state.changes = {};
     renderStudents();
@@ -279,7 +280,7 @@ async function saveAll() {
   saveBtn.disabled = true;
   try {
     for (const [studentId, present] of Object.entries(state.changes)) {
-      const existing = state.attendance.find(a=>a.student_id===studentId && Number(a.cohort_id)===Number(state.cohortId) && Number(a.month)===Number(state.monthIdx));
+      const existing = state.attendance.find(a=>a.student_id===studentId);
       if (existing) {
         await api(`attendance?id=eq.${existing.id}`, 'PATCH', { present, marked_by:'facilitator' });
         existing.present = present;
