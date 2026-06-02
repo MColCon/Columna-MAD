@@ -499,6 +499,16 @@ async function handleXlsx(event) {
   const al = document.getElementById('reg-alert');
   const file = event.target.files[0];
   if (!file) return;
+
+  // Make sure cohorts are loaded from Neon before importing
+  if (!S.cohorts || S.cohorts.length === 0) {
+    try {
+      S.cohorts = await api('SELECT * FROM cohorts ORDER BY id');
+    } catch(e) {
+      sAl(al,'error','Could not connect to database. Please refresh and try again.');
+      return;
+    }
+  }
   const reader = new FileReader();
   reader.onload = async function(e) {
     try {
