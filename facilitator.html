@@ -135,23 +135,22 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 </div>
 
 <script>
-const SUPABASE_URL = 'https://jipuejubzctpxdgpvxuh.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImppcHVlanViemN0cHhkZ3B2eHVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MDU1OTgsImV4cCI6MjA5NDM4MTU5OH0.ZJGK9eBzAgWp_NFeod7yYcRJiT1RzczHALxbjQzPTkU';
+const NEON='https://ep-wild-pine-abfoj8ih.eu-west-2.aws.neon.tech/sql';
+const NEON_AUTH='Basic '+btoa('neondb_owner:npg_Q59GLSDnmhEo');
+const NEON_CONN='postgresql://neondb_owner:npg_Q59GLSDnmhEo@ep-wild-pine-abfoj8ih.eu-west-2.aws.neon.tech/neondb';
 const MONTH_NAMES = ['May','June','July','August','September','October','November','December'];
 
 let state = { cohorts:[], students:[], attendance:[], cohortId:null, monthIdx:null, changes:{} };
 
-async function api(path, method='GET', body=null) {
-  const opts = { method, headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', 'Prefer': method==='POST'?'return=representation':'' } };
-  if (body) opts.body = JSON.stringify(body);
-  const r = await fetch(SUPABASE_URL + '/rest/v1/' + path, opts);
-  if (!r.ok) { const e = await r.json(); throw new Error(e.message||'API error'); }
-  return r.status === 204 ? null : r.json();
+async function api(sql, params=[]) {
+  const r = await fetch(NEON, {method:'POST', headers:{'Content-Type':'application/json','Authorization':NEON_AUTH,'Neon-Connection-String':NEON_CONN}, body:JSON.stringify({query:sql,params})});
+  if (!r.ok) { const e = await r.json(); throw new Error(JSON.stringify(e)); }
+  const d = await r.json(); return d.rows || [];
 }
 
 async function init() {
   try {
-    state.cohorts = await api('cohorts?order=id');
+    state.cohorts = await api('SELECT * FROM cohorts ORDER BY id');
     const sel = document.getElementById('cohort-select');
     sel.innerHTML = state.cohorts.map(c=>`<option value="${c.id}">${c.name}${c.facilitator?' — '+c.facilitator:''}</option>`).join('');
   } catch(e) { console.error(e); }
@@ -172,17 +171,17 @@ async function loadSession() {
   state.changes = {};
 
   try {
-    const students = await api(`students?cohort_id=eq.${cohortId}&order=student_id`);
+    const students = await api('SELECT * FROM students WHERE cohort_id=$1 ORDER BY student_id',[cohortId]);
     state.students = students || [];
 
     // Fetch ALL attendance for this cohort regardless of month/year to debug
-    const attendance = await api(`attendance?cohort_id=eq.${cohortId}&month=eq.${monthIdx}`);
+    const attendance = await api('SELECT * FROM attendance WHERE cohort_id=$1 AND month=$2',[cohortId,monthIdx]);
     state.attendance = attendance || [];
 
     // Auto-refresh every 15 seconds
     if (autoRefreshTimer) clearInterval(autoRefreshTimer);
     autoRefreshTimer = setInterval(async () => {
-      const fresh = await api(`attendance?cohort_id=eq.${cohortId}&month=eq.${monthIdx}`);
+      const fresh = await api('SELECT * FROM attendance WHERE cohort_id=$1 AND month=$2',[cohortId,monthIdx]);
       state.attendance = fresh || [];
       renderStudents();
       renderStats();
@@ -217,7 +216,7 @@ function isPresent(studentId) {
 async function refreshSession() {
   if (!state.cohortId) return;
   try {
-    const attendance = await api(`attendance?cohort_id=eq.${state.cohortId}&month=eq.${state.monthIdx}&year=eq.2026`);
+    const attendance = await api('SELECT * FROM attendance WHERE cohort_id=$1 AND month=$2',[state.cohortId,state.monthIdx]);
     state.attendance = attendance || [];
     state.changes = {};
     renderStudents();
@@ -280,12 +279,12 @@ async function saveAll() {
   saveBtn.disabled = true;
   try {
     for (const [studentId, present] of Object.entries(state.changes)) {
-      const existing = state.attendance.find(a=>a.student_id===studentId);
+      const existing = state.attendance.find(a=>a.student_id===studentId && Number(a.cohort_id)===Number(state.cohortId) && Number(a.month)===Number(state.monthIdx));
       if (existing) {
-        await api(`attendance?id=eq.${existing.id}`, 'PATCH', { present, marked_by:'facilitator' });
+        await api('UPDATE attendance SET present=$1, marked_by=\'facilitator\' WHERE id=$2',[present,existing.id]);
         existing.present = present;
       } else {
-        const res = await api('attendance', 'POST', { student_id:studentId, cohort_id:state.cohortId, month:state.monthIdx, year:2026, present, marked_by:'facilitator' });
+        const res = await api('INSERT INTO attendance(student_id,cohort_id,month,year,present,marked_by) VALUES($1,$2,$3,2026,$4,\'facilitator\') RETURNING *',[studentId,state.cohortId,state.monthIdx,present]);
         state.attendance.push(res[0]);
       }
     }
